@@ -8,11 +8,12 @@ except ImportError:
     import Image
 import pytesseract
 
-#pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 path_to_csv = ''
 table = []
 histogram = dict()
+font_list = set()
 
 def setUp():
     with open(path_to_csv, 'r') as data:
@@ -25,6 +26,7 @@ def test():
         ocr_text = pytesseract.image_to_string(Image.open(line['Path'] + line['Filename'])).strip()
         spliced_filename = re.split("_|pt", line['Filename'])
         font, size = spliced_filename[0], int(spliced_filename[1])
+        font_list.add(font)
         if line['Text'] == ocr_text:
             if font in histogram.keys():
                 if size < histogram[font]:
@@ -33,9 +35,12 @@ def test():
                 histogram[font] = size
 
 
-def printfont():
-    for (font, size) in histogram.items():
-        print(font+','+str(size))
+def print_all():
+    for font in font_list:
+        if font in histogram.keys():
+            print(font+","+str(histogram[font]))
+        else:
+            print(font+",")
 
 
 if __name__ == '__main__':
@@ -44,4 +49,4 @@ if __name__ == '__main__':
     path_to_csv = sys.argv[1]
     setUp()
     test()
-    printfont()
+    print_all()
