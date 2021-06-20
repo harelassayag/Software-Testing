@@ -1,15 +1,19 @@
 #!/usr/bin/python
-
-# import unittest
 import csv
 import sys
+import re
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 import pytesseract
+
+#pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 path_to_csv = ''
 table = []
+histogram = dict()
 
-
-# class TesseractTest(unittest.TestCase):
 def setUp():
     with open(path_to_csv, 'r') as data:
         for line in csv.DictReader(data):
@@ -17,22 +21,22 @@ def setUp():
 
 
 def test():
-    # self.setUpClass()
     for line in table:
-        print(pytesseract.image_to_string(line['Path'] + line['Filename']))
-    # self.assertEqual(1, 1)
+        ocr_text = pytesseract.image_to_string(Image.open(line['Path'] + line['Filename'])).strip()
+        spliced_filename = re.split("_|pt", line['Filename'])
+        font, size = spliced_filename[0], int(spliced_filename[1])
+        if line['Text'] == ocr_text:
+            if font in histogram.keys():
+                if size < histogram[font]:
+                    histogram[font] = size
+            else:
+                histogram[font] = size
 
 
-# def test_isupper(self):
-#     self.assertTrue('FOO'.isupper())
-#     self.assertFalse('Foo'.isupper())
-#
-# def test_split(self):
-#     s = 'hello world'
-#     self.assertEqual(s.split(), ['hello', 'world'])
-#     # check that s.split fails when the separator is not a string
-#     with self.assertRaises(TypeError):
-#         s.split(2)
+def printfont():
+    for (font, size) in histogram.items():
+        print(font+','+str(size))
+
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
@@ -40,3 +44,4 @@ if __name__ == '__main__':
     path_to_csv = sys.argv[1]
     setUp()
     test()
+    printfont()
